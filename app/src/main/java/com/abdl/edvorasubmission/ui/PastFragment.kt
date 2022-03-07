@@ -2,19 +2,16 @@ package com.abdl.edvorasubmission.ui
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.abdl.edvorasubmission.R
 import com.abdl.edvorasubmission.data.repository.MainRepository
 import com.abdl.edvorasubmission.data.source.remote.model.RideResponseItem
 import com.abdl.edvorasubmission.data.source.remote.services.RetrofitService
-import com.abdl.edvorasubmission.databinding.FragmentNearestBinding
 import com.abdl.edvorasubmission.databinding.FragmentPastBinding
-import com.abdl.edvorasubmission.databinding.FragmentUpcomingBinding
 import com.abdl.edvorasubmission.viewmodel.MainViewModel
 import com.abdl.edvorasubmission.viewmodel.MyViewModelFactory
 import java.text.SimpleDateFormat
@@ -41,7 +38,7 @@ class PastFragment : Fragment() {
 
             viewModel = ViewModelProvider(this, MyViewModelFactory(mainRepository))[MainViewModel::class.java]
 
-            var distances = mutableListOf<Int?>()
+            var distances = mutableListOf<Int>()
             val ridesAdapter = RidesAdapter(distances)
 
             val sdf = SimpleDateFormat("MM/dd/yyyy hh:mm a")
@@ -50,15 +47,51 @@ class PastFragment : Fragment() {
 
             pastBinding.progressBar.visibility = View.VISIBLE
             viewModel.rideList.observe(viewLifecycleOwner) { rides ->
-                val ridePast = arrayListOf<RideResponseItem>()
-                for (ride in rides){
-                    if (ride.date!! > currentDate){
-                        Log.d("PastFragment", "past ${ride.date} kurang dari $currentDate")
-                        ridePast.addAll(listOf(ride))
+                viewModel.userList.observe(viewLifecycleOwner) {
+                    val myNumber = it.stationCode
+                    val ridePast = arrayListOf<RideResponseItem>()
+                    for (ride in rides) {
+                        if (ride.date!! > currentDate) {
+                            Log.d("PastFragment", "past ${ride.date} kurang dari $currentDate")
+                            ridePast.addAll(listOf(ride))
+                            val numbers = ride.stationPath
+                            val operate = myNumber?.let { it1 -> numbers?.get(0)?.minus(it1) }
+                            var distance: Int? = operate?.let { it1 -> Math.abs(it1) }
+                            var idx = 0
+                            if (numbers != null) {
+                                for (c in 1 until numbers.size) {
+                                    val cdistance: Int? = numbers?.get(c)?.minus(myNumber!!)
+                                        ?.let { it1 -> Math.abs(it1) }
+                                    if (cdistance != null) {
+                                        if (cdistance < distance!!) {
+                                            idx = c
+                                            distance = cdistance
+                                        }
+                                    }
+                                }
+                            }
+                            val theNumber: Int? = numbers?.get(idx)
+
+
+                            var jarak: Int? = null
+                            if (theNumber!! > myNumber!!) {
+                                jarak = theNumber - myNumber
+                            } else {
+                                jarak = myNumber - theNumber
+                            }
+
+                            distances.add(jarak)
+
+                            Log.d("NearestFragment", "Ini angka station user $myNumber")
+                            Log.d("NearestFragment", "Ini angka statiopath $numbers")
+                            Log.d("NearestFragment", "Ini angka Terkecil $theNumber")
+                            Log.d("NearestFragment", "Jadi angka jaraknya adalah $jarak")
+                            Log.d("NearestFragment", "Jadi coba $distances")
+                        }
                     }
+                    pastBinding.progressBar.visibility = View.GONE
+                    ridesAdapter.setRideList(ridePast)
                 }
-                pastBinding.progressBar.visibility = View.GONE
-                ridesAdapter.setRideList(ridePast)
             }
 
             with(pastBinding.rvRidesPast) {
@@ -67,6 +100,7 @@ class PastFragment : Fragment() {
             }
 
             viewModel.getAllRide()
+            viewModel.getUser()
         }
     }
 }

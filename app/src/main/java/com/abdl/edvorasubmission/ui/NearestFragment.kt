@@ -2,11 +2,10 @@ package com.abdl.edvorasubmission.ui
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.abdl.edvorasubmission.data.repository.MainRepository
@@ -18,7 +17,6 @@ import com.abdl.edvorasubmission.viewmodel.MyViewModelFactory
 class NearestFragment : Fragment() {
     private lateinit var viewModel: MainViewModel
     private lateinit var nearestBinding: FragmentNearestBinding
-    private lateinit var distance: List<Int?>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,14 +35,13 @@ class NearestFragment : Fragment() {
 
             viewModel = ViewModelProvider(this, MyViewModelFactory(mainRepository))[MainViewModel::class.java]
 
-            val distances = mutableListOf<Int?>()
+            val distances = mutableListOf<Int>()
             val ridesAdapter = RidesAdapter(distances)
 
             nearestBinding.progressBar.visibility = View.VISIBLE
             viewModel.rideList.observe(viewLifecycleOwner) { rides ->
                 viewModel.userList.observe(viewLifecycleOwner){
                     val myNumber = it.stationCode
-                    var jarakList = mutableListOf<Int?>()
                     for (ride in rides){
                         val numbers = ride.stationPath
                         val operate = myNumber?.let { it1 -> numbers?.get(0)?.minus(it1) }
@@ -68,19 +65,18 @@ class NearestFragment : Fragment() {
                         var jarak: Int? = null
                         if (theNumber!! > myNumber!!){
                             jarak = theNumber - myNumber
-                            jarakList.add(jarak)
                         } else {
                             jarak = myNumber - theNumber
-                            jarakList.add(jarak)
                         }
 
                         distances.add(jarak)
+
                         Log.d("NearestFragment", "Ini angka station user $myNumber")
                         Log.d("NearestFragment", "Ini angka statiopath $numbers")
                         Log.d("NearestFragment", "Ini angka Terkecil $theNumber")
                         Log.d("NearestFragment", "Jadi angka jaraknya adalah $jarak")
                         Log.d("NearestFragment", "Jadi coba $distances")
-                }
+                    }
 
                 }
                 nearestBinding.progressBar.visibility = View.GONE

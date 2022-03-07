@@ -1,22 +1,15 @@
 package com.abdl.edvorasubmission.ui
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
-import com.abdl.edvorasubmission.R
-import com.abdl.edvorasubmission.data.repository.MainRepository
 import com.abdl.edvorasubmission.data.source.remote.model.RideResponseItem
-import com.abdl.edvorasubmission.data.source.remote.model.UserResponse
-import com.abdl.edvorasubmission.data.source.remote.services.RetrofitService
 import com.abdl.edvorasubmission.databinding.ItemsRidesBinding
-import com.abdl.edvorasubmission.viewmodel.MainViewModel
 import com.bumptech.glide.Glide
 
-class RidesAdapter(var distances: List<Int?>) : RecyclerView.Adapter<RidesAdapter.RidesViewHolder>() {
+class RidesAdapter(var distances: MutableList<Int>) :
+    RecyclerView.Adapter<RidesAdapter.RidesViewHolder>() {
     var ride = ArrayList<RideResponseItem>()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -35,12 +28,12 @@ class RidesAdapter(var distances: List<Int?>) : RecyclerView.Adapter<RidesAdapte
 
     override fun onBindViewHolder(holder: RidesViewHolder, position: Int) {
         val ride = ride[position]
+        distances.sort()
         val distances = distances[position]
         if (ride != null) {
             holder.bind(ride)
             holder.distance(listOf(distances))
         }
-
     }
 
     override fun getItemCount(): Int {
@@ -63,9 +56,9 @@ class RidesAdapter(var distances: List<Int?>) : RecyclerView.Adapter<RidesAdapte
                     .into(imgMaps)
             }
         }
-        fun distance(distances: List<Int?>){
-            for (distance in distances)
-            {
+
+        fun distance(distances: List<Int>) {
+            for (distance in distances) {
                 binding.tvDistance.text = distance.toString()
             }
         }
